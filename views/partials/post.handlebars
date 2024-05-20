@@ -1,0 +1,38 @@
+{{! Partial for a single post }}
+<div class="post">
+    <div class="post-avatar">
+        <!-- the user's avatar -->
+    </div>
+    <h3>{{title}}</h3>
+    <div class="post-content preserve-newlines">
+        <!-- the post -->
+        <p>{{content}}</p>
+        <div class="post-status-bar">
+            <!-- everything that is shown in the status bar -->
+            <!-- Heart = ♥ -->
+            <!-- font awesome  trashcan = <i class="fas fa-trash-alt"> </i>-->
+            {{#if this.user}}
+                <button class="delete-button" onclick="handleDeleteClick" data-id={{id}}></button>
+            {{else}}
+                <button onClick="handleLikeClick" data-id={{id}}>♥</button>
+            {{/if}}
+            {{likes}} Likes Posted by {{username}} on {{timestamp}}
+        </div>        
+    </div>
+</div>
+
+<script>
+    function handleLikeClick(event) {
+        const postId = event.target.getAttribute('data-id');
+
+        // you might want to "fetch" something...        
+    }
+
+    function handleDeleteClick(event) {
+        const buttonElement = event.target.closest('.delete-button');
+        const postId = buttonElement.getAttribute('data-id');        
+
+        // you might want to "fetch" something...        
+        
+    }    
+</script>
