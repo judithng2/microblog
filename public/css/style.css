@@ -1,0 +1,140 @@
+
+* {
+    font-family: 'Quicksand';
+    font-size: 18px;
+
+    color: #393E41;
+}
+
+h2 {
+    font-weight: bold;
+    font-size: 32px;
+}
+
+h3 {
+    color: black;
+    font-size: 25px;
+}
+
+span {
+    font-weight: bold;
+    padding: 0px 0px 0px 30px;
+}
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+  
+li {
+    float: left;
+}
+  
+li a {
+    display: block;
+    text-align: center;
+    padding: 16px;
+    text-decoration: none;
+}
+
+li a:hover {
+    color: cornflowerblue;
+}
+
+center {
+    margin-top: -3%;
+}
+
+footer {
+    text-align: center;
+    padding-top: 100px;
+}
+
+table {
+    border-collapse: separate; 
+    border-spacing: 0em 1em;
+}
+
+th {
+    background-color: #F5F5F5;
+    text-align: left;
+    padding: 10px;
+}
+
+input, textarea {
+    margin: 5% 0%;
+    min-width: 400px;
+}
+
+textarea {
+    height: 150px;
+}
+
+.header-logo {
+    width: 150px;
+}
+
+.topnav-right {
+    float: right;
+    padding-top: 60px;
+}
+
+.avatar {
+    padding: 0px 40px 0px 15px;
+}
+
+th > article {
+    padding-left: 5%;
+    padding-bottom: 5%;
+}
+
+.content-container {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    justify-content: center;
+
+    gap: 5%;
+}
+
+.vertical-list {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.post {
+    min-width: 400px;
+}
+
+#title {
+    font-family: 'Edu TAS Beginner';
+    font-weight: bold;
+    font-size: 50px;
+    padding-top: 40%;
+}
+
+@media screen and (max-width: 1200px) {
+    .content-container:has(article) {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+
+@media screen and (max-width: 800px) {
+    .content-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .topnav-right {
+        float: none;
+        padding-top: 60px;
+    }
+    .avatar {
+        padding: 0% 0% 0% 20%;
+    }
+}
+

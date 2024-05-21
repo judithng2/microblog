@@ -11,13 +11,16 @@
             <form method="POST" action="/posts">
                 <!-- title input field name = "title" -->
                 <!-- text area input field name = "content" -->
-                <input type="text"name="title" placeholder="Title..." required>
-                <textarea name="content" placeholder="Start writing..."required></textarea>
+                <article class="vertical-list">
+                    <input type="text"name="title" placeholder="Title..." required>
+                    <textarea name="content" placeholder="Start writing..."required></textarea>
 
-                <div class="form-actions">
-                    <button type="button" class="emoji-button" onclick="toggleEmojiPanel()">😀</button>
-                    <button type="submit" class="post-button" name="submit" id="submit-in">Post</button>
-                </div>
+                    <div class="form-actions">
+                        <button type="button" class="emoji-button" onclick="toggleEmojiPanel()">😀</button>
+                        <button type="submit" class="post-button" name="submit" id="submit-in">Post</button>
+                    </div>
+                </article>
+                
             </form>
 
             <div id="emoji-container" class="emoji-panel" style="display: none;">
@@ -27,14 +30,27 @@
         </section>
     {{/if}}
 
-    <section class="posts-list">
+    <section class="vertical-list">
         <!-- recent posts -->
         <h2>Recent Posts</h2>
         {{#if posts.length}}
         <ul>
             {{#each posts}}
                 <!-- you have to pass the user in to posts and this is the syntax -->
-                {{> post this user=../user}}            
+                <table>
+                    <tr>
+                        <th><img class="avatar" src="/avatar/{{username}}" alt="User Avatar" class="header-avatar"></th>
+                        <th>
+                            <article class="post">
+                                <h3>{{title}}</h3>
+                                <p>{{content}}</p>
+                                <small>By: {{username}} At: {{timestamp}}</small>     
+                            </article> 
+                        </th>
+                    </tr>
+                </table>
+                
+                   
             {{/each}}
         </ul>
         {{else}}
