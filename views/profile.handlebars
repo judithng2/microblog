@@ -2,32 +2,34 @@
 {{!< main }}
 
 <div class="profile-container">
-    <div class="profile-avatar">
+    <div>
         <!-- Correct path for the default avatar image -->
-        <img src="/avatar/{{user.username}}" alt="User Avatar" class="header-avatar">
+        <section class="profile-info">
+            <img class="profile-avatar" src="/avatar/{{user.username}}" alt="User Avatar">
+            <!-- user profile info -->
+            <h2>User Profile</h2>
+            <p>Username: {{user.username}}</p>
+            <p>Member Since: {{user.memberSince}}</p>
+        </section>
     </div>
-    
-    <section class="profile-info">
-        <!-- user profile info -->
-        <h2>User Profile</h2>
-        <p>Username: {{user.username}}</p>
-        <p>Member Since: {{user.memberSince}}</p>
+
+    <section class="user-posts">
+        <!-- you can call posts tweets, or truths, or whatever, these are neologisms. Choose your own new in server.js -->
+        <h2>Your {{{postNeoType}}}s</h2>
+        
+        <!-- you'll need to make this conditaionl and #each expression work -->
+        {{#if user.posts.length}}
+            <ul>
+                {{#each user.posts}}
+                    <article class="each-post">
+                    {{> post this}}  
+                </article>
+                {{/each}}
+            </ul>
+        {{else}}
+            <!-- fix this up with some helper functions and other handlebars expressions, or add you own character -->
+            <p>No posts yet :C Post something!!</p>
+        {{/if}}
     </section>
 </div>
 
-<section class="user-posts">
-    <!-- you can call posts tweets, or truths, or whatever, these are neologisms. Choose your own new in server.js -->
-    <h2>Your {{{postNeoType}}}s</h2>
-    
-    <!-- you'll need to make this conditaionl and #each expression work -->
-    {{#if user.posts.length}}
-        <ul>
-            {{#each user.posts}}
-                {{> post this}}
-            {{/each}}
-        </ul>
-    {{else}}
-        <!-- fix this up with some helper functions and other handlebars expressions, or add you own character -->
-        <p>Not real :C</p>
-    {{/if}}
-</section>

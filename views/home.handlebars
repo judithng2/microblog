@@ -12,7 +12,7 @@
                 <!-- title input field name = "title" -->
                 <!-- text area input field name = "content" -->
                 <article class="vertical-list">
-                    <input type="text"name="title" placeholder="Title..." required>
+                    <input type="text" name="title" placeholder="Title..." required>
                     <textarea name="content" placeholder="Start writing..."required></textarea>
 
                     <div class="form-actions">
@@ -37,7 +37,9 @@
         <ul>
             {{#each posts}}
                 <!-- you have to pass the user in to posts and this is the syntax -->
-                {{> post this user=../user}}
+                <article class="each-post">
+                    {{> post this}}  
+                </article>
             {{/each}}
         </ul>
         {{else}}

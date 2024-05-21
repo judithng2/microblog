@@ -3,30 +3,36 @@
 
 <section class="login-register">
     <section class = "login-area">
-        <h2>Login</h2>
+        <h2 class="login-register-text">Login</h2>
         <!-- errors will appear here -->
         {{#if loginError}}
             <p style="color: red;">{{loginError}}</p>
         {{/if}}
         <form action="/login" method="POST">
             <!-- the login form goes here -->    
-            Username: <input name="username" type="text" required>  
-            <button type="submit">Login</button>
+            <p>Username:
+                <input name="username" type="text" required> 
+                <button type="submit">Login</button>
+            </p>
+             
         </form>
     </section>
 
     <!-- say --OR-- ... with style -->
-
+    <h3>--OR--</h3>
+    
     <section class = "register-area">
-        <h2>Register</h2>
+        <h2 class="login-register-text">Register</h2>
         <!-- errors will appear here -->
         {{#if regError}}
             <p style="color: red;">{{regError}}</p>
         {{/if}}
         <form action="/register" method="POST">
             <!-- the registration form goes here -->
-            Username: <input name="username" type="text" required> 
-            <button type="submit">Register</button>
+            <p>Username:
+                <input name="username" type="text" required> 
+                <button type="submit">Register</button>
+            </p>
         </form>
     </section>
 </section>

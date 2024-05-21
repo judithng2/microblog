@@ -18,7 +18,11 @@ h3 {
 
 span {
     font-weight: bold;
-    padding: 0px 0px 0px 30px;
+    padding: 0px 0px 0px 10px;
+}
+
+span:hover {
+    color: cornflowerblue;
 }
 
 ul {
@@ -49,18 +53,7 @@ center {
 
 footer {
     text-align: center;
-    padding-top: 100px;
-}
-
-table {
-    border-collapse: separate; 
-    border-spacing: 0em 1em;
-}
-
-th {
-    background-color: #F5F5F5;
-    text-align: left;
-    padding: 10px;
+    padding-top: 3%;
 }
 
 input, textarea {
@@ -85,12 +78,39 @@ textarea {
     padding: 0px 40px 0px 15px;
 }
 
-th > article {
-    padding-left: 5%;
-    padding-bottom: 5%;
+.profile-avatar {
+    width: 100px;
 }
 
-.content-container {
+.post {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    justify-content: left;
+
+    gap: 5%;
+}
+
+.post-avatar {
+    padding: 10% 5%;
+}
+
+.post-content {
+    text-align: left;
+}
+
+.post-status-bar > p {
+    font-size: 12px;
+}
+
+.each-post {
+    background-color: #F5F5F5;
+    margin-bottom: 5%;
+
+    min-width: 500px;
+}
+
+.content-container, .profile-container {
     display: flex;
     flex-wrap: nowrap;
     flex-direction: row;
@@ -99,15 +119,24 @@ th > article {
     gap: 5%;
 }
 
-.vertical-list {
+.vertical-list, .login-register {
     display: flex;
     flex-wrap: nowrap;
     flex-direction: column;
     justify-content: center;
 }
 
-.post {
-    min-width: 400px;
+.register-area, .login-area {
+    background-color: #F5F5F5;
+    margin: 3% 25%;
+}
+
+.login-register-text {
+    margin-bottom: 0%;
+}
+
+.user-posts {
+    margin-top: -2%;
 }
 
 #title {
@@ -118,9 +147,24 @@ th > article {
 }
 
 @media screen and (max-width: 1200px) {
-    .content-container:has(article) {
+    .content-container:has(article), .profile-container {
         flex-direction: column;
         align-items: center;
+    }
+    .post {
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .post-avatar {
+        padding: 5% 5%;
+        padding-bottom: 0%;
+    }
+    .post-content {
+        text-align: center;
+    }
+    input, textarea {
+        min-width: 60%;
     }
 }
 
