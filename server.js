@@ -125,18 +125,22 @@ app.get('/error', (req, res) => {
 
 app.post('/posts', (req, res) => {
     // TODO: Add a new post and redirect to home
-    if (req.body.title && req.body.content) {
+    if (req.session.userId){
         addPost(req.body.title, req.body.content, findUserById(req.session.userId).username);
         res.redirect('/');
     }
 });
 app.post('/like/:id', (req, res) => {
     // TODO: Update post likes
-    //////////////////////////////////////************************************
+    if (req.session.userId){
+        updatePostLikes(req, res);
+    }
 });
 app.get('/profile', isAuthenticated, (req, res) => {
     // TODO: Render profile page
-    renderProfile(req, res);
+    if (req.session.userId) {
+        renderProfile(req, res);
+    }
 });
 app.get('/avatar/:username', (req, res) => {
     // TODO: Serve the avatar image for the user
@@ -152,11 +156,15 @@ app.post('/login', (req, res) => {
 });
 app.get('/logout', (req, res) => {
     // TODO: Logout the user
-    logoutUser(req, res);
+    if (req.session.userId) {
+        logoutUser(req, res);
+        }
 });
 app.post('/delete/:id', isAuthenticated, (req, res) => {
     // TODO: Delete a post if the current user is the owner
-    ////////////////////////////////***************************************
+    if (req.session.userId) {
+        deletePost(req, res);
+    }
 });
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -242,8 +250,12 @@ function isAuthenticated(req, res, next) {
 // Function to register a user
 function registerUser(req, res) {
     // TODO: Register a new user and redirect appropriately
-    addUser(req.body.username);
-    loginUser(req, res);
+    if (findUserByUsername(req.body.username)) {
+        res.redirect('/register?error=Username+already+exists');
+    } else {
+        addUser(req.body.username);
+        loginUser(req, res);
+    }
 }
 
 // Function to login a user
@@ -291,7 +303,12 @@ function renderProfile(req, res) {
 // Function to update post likes
 function updatePostLikes(req, res) {
     // TODO: Increment post likes if conditions are met
-    //////////////////////////////////////////////////////////////////////***************************************
+    let likedPost = findPostById(req.body.postId);
+    if (likedPost) {
+        likedPost.likes += 1;
+        res.status(200);
+        res.send({value: likedPost.likes});
+    }
 }
 
 // Function to handle avatar generation and serving
@@ -354,4 +371,30 @@ function generateAvatar(letter, width = 80, height = 80) {
     ctx.fillText(letter, width / 2, height / 2);
 
     return canvas.toBuffer('image/png');
+}
+
+function deletePost(req, res) {
+    let currUsr = getCurrentUser(req);
+    let dltPost = findPostById(req.body.postId);
+    if (currUsr.username == dltPost.username) {
+        const indx = posts.indexOf(dltPost);
+        if (indx > -1) {
+            posts.splice(indx, 1);
+            res.status(200);
+        } else {
+            res.status(404);
+        }
+    } else {
+        res.status(401);
+    }
+}
+
+function findPostById(idVal) {
+    let psts = getPosts();
+    for (let i = 0; i < psts.length; i++) {
+        if (idVal == psts[i].id) {
+            return psts[i];
+        }
+    }
+    return undefined;
 }

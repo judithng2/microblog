@@ -1,38 +1,74 @@
 {{! Partial for a single post }}
 <div class="post">
-    <div class="post-avatar">
-        <!-- the user's avatar -->
-    </div>
-    <h3>{{title}}</h3>
-    <div class="post-content preserve-newlines">
-        <!-- the post -->
-        <p>{{content}}</p>
-        <div class="post-status-bar">
-            <!-- everything that is shown in the status bar -->
-            <!-- Heart = ♥ -->
-            <!-- font awesome  trashcan = <i class="fas fa-trash-alt"> </i>-->
-            {{#if this.user}}
-                <button class="delete-button" onclick="handleDeleteClick" data-id={{id}}></button>
-            {{else}}
-                <button onClick="handleLikeClick" data-id={{id}}>♥</button>
-            {{/if}}
-            {{likes}} Likes Posted by {{username}} on {{timestamp}}
-        </div>        
-    </div>
+    <table>
+        <tr>
+            <th><img class="avatar" src="/avatar/{{username}}" alt="User Avatar" class="header-avatar"></th>
+            <th>
+                <article class="post">
+                    <h3>{{title}}</h3>
+                    <p>{{content}}</p>
+                    <small>
+                        {{#ifCond username this.user.username}}
+                            <button class="delete-button" id="deleteBtn" data-id={{id}} onclick="handleDeleteClick(event)"></button>
+                        {{else}}
+                            <button data-id={{id}} onclick="handleLikeClick(event)">♥</button>
+                        {{/ifCond}}
+                        <span id="postLikes">{{likes}} likes</span>
+                        By: {{username}} At: {{timestamp}}
+                    </small>     
+               </article> 
+            </th>
+        </tr>
+    </table>
 </div>
 
 <script>
     function handleLikeClick(event) {
-        const postId = event.target.getAttribute('data-id');
+        const pstId = event.target.getAttribute('data-id');
+        let likeUrl = '/like/:id';
 
-        // you might want to "fetch" something...        
+        // you might want to "fetch" something...  
+        fetch(likeUrl, {
+            method: "POST", 
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                postId: pstId
+            })
+        })
+        .then(statusCheck).then(processData)
+        .catch(handleError);
     }
 
     function handleDeleteClick(event) {
         const buttonElement = event.target.closest('.delete-button');
-        const postId = buttonElement.getAttribute('data-id');        
-
+        const postId = buttonElement.getAttribute('data-id');  
+        let deleteUrl = '/delete/:id';
         // you might want to "fetch" something...        
-        
-    }    
+        fetcth(deleteUrl, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({postId: pstId})
+        })
+        .then(statusCheck).then(processData)
+        .catch(handleError);
+    }
+
+    function statusCheck(res) {
+        if (!res.ok) {
+            throw new Error('Failed to interact with post: ' + res.statusText);
+        }
+        return res;
+    }  
+
+    function processData(data) {
+        window.location.reload();
+    }
+
+    function handleError(error) {
+        console.error('Error interacting with post: ', error);
+    }
 </script>

@@ -37,20 +37,7 @@
         <ul>
             {{#each posts}}
                 <!-- you have to pass the user in to posts and this is the syntax -->
-                <table>
-                    <tr>
-                        <th><img class="avatar" src="/avatar/{{username}}" alt="User Avatar" class="header-avatar"></th>
-                        <th>
-                            <article class="post">
-                                <h3>{{title}}</h3>
-                                <p>{{content}}</p>
-                                <small>By: {{username}} At: {{timestamp}}</small>     
-                            </article> 
-                        </th>
-                    </tr>
-                </table>
-                
-                   
+                {{> post this user=../user}}
             {{/each}}
         </ul>
         {{else}}
