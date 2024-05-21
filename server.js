@@ -1,7 +1,8 @@
+
 const express = require('express');
 const expressHandlebars = require('express-handlebars');
 const session = require('express-session');
-const canvas = require('canvas');
+const { createCanvas } = require('canvas');
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Configuration and Setup
@@ -75,7 +76,7 @@ app.use(
 // should be used in your template files. 
 // 
 app.use((req, res, next) => {
-    res.locals.appName = 'MicroBlog';
+    res.locals.appName = 'PETs';
     res.locals.copyrightYear = 2024;
     res.locals.postNeoType = 'Post';
     res.locals.loggedIn = req.session.loggedIn || false;
@@ -139,7 +140,7 @@ app.get('/profile', isAuthenticated, (req, res) => {
 });
 app.get('/avatar/:username', (req, res) => {
     // TODO: Serve the avatar image for the user
-    ///////////////////////////////////////////**********************************
+    handleAvatar(req, res);
 });
 app.post('/register', (req, res) => {
     // TODO: Register a new user
@@ -296,7 +297,17 @@ function updatePostLikes(req, res) {
 // Function to handle avatar generation and serving
 function handleAvatar(req, res) {
     // TODO: Generate and serve the user's avatar image
-    ////////////////////////////////////////////////////////////////////////***************************************
+    const { username } = req.params;
+    const user = findUserByUsername(username);
+
+    if (user != undefined) {
+        const letter = username.charAt(0).toUpperCase();
+        const avatar = generateAvatar(letter);
+
+        res.set('Content-Type', 'image/png');
+        res.send(avatar);
+    } else
+        res.status(404).send('User not found');
 }
 
 // Function to get the current user from session
@@ -320,7 +331,7 @@ function addPost(title, content, user) {
 }
 
 // Function to generate an image avatar
-function generateAvatar(letter, width = 100, height = 100) {
+function generateAvatar(letter, width = 80, height = 80) {
     // TODO: Generate an avatar image with a letter
     // Steps:
     // 1. Choose a color scheme based on the letter
@@ -328,5 +339,19 @@ function generateAvatar(letter, width = 100, height = 100) {
     // 3. Draw the background color
     // 4. Draw the letter in the center
     // 5. Return the avatar as a PNG buffer
-    ///////////////////////////////////////////////////////////////////////////********************************************
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+    const colors = ['#ffc0b3', '#b3ffc0', '#b3ccff', '#ffb3f2', '#c0b3ff'];
+    const color = colors[letter.charCodeAt(0) % colors.length];
+
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.font = 'bold 50px Quicksand';
+    ctx.fillStyle = '#393E41';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(letter, width / 2, height / 2);
+
+    return canvas.toBuffer('image/png');
 }
