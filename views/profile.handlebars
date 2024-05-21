@@ -19,8 +19,8 @@
             <ul>
                 {{#each user.posts}}
                     <article class="each-post">
-                    {{> post this}}  
-                </article>
+                        {{> post this user=../user}}  
+                    </article>
                 {{/each}}
             </ul>
         {{else}}
