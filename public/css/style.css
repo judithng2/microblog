@@ -61,7 +61,7 @@ input, textarea {
     min-width: 400px;
 }
 
-textarea {
+textarea, .emoji-panel {
     height: 150px;
 }
 
@@ -144,6 +144,10 @@ textarea {
     font-weight: bold;
     font-size: 50px;
     padding-top: 40%;
+}
+
+#emoji-grid {
+    max-width: 400px;
 }
 
 @media screen and (max-width: 1200px) {

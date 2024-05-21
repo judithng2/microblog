@@ -13,7 +13,7 @@
                 <!-- text area input field name = "content" -->
                 <article class="vertical-list">
                     <input type="text" name="title" placeholder="Title..." required>
-                    <textarea name="content" placeholder="Start writing..."required></textarea>
+                    <textarea id="post-content" name="content" placeholder="Start writing..."required></textarea>
 
                     <div class="form-actions">
                         <button type="button" class="emoji-button" onclick="toggleEmojiPanel()">😀</button>
@@ -24,8 +24,8 @@
             </form>
 
             <div id="emoji-container" class="emoji-panel" style="display: none;">
-                <!-- input field for the emoji search, use oninput="searchEmojis() -->
-                <!-- a div, id = "emoji-grid" -->
+                <input type="text" id="emoji-search" oninput="searchEmojis()" placeholder="Search for emojis...">
+                <div id="emoji-grid"></div>
             </div>
         </section>
     {{/if}}
@@ -68,6 +68,15 @@ function toggleEmojiPanel() {
 
     if(container.style.display === 'block' && allEmojis.length == 0){
         // go "Fetch" you some emojis and show them off with displayEmojies
+        fetch('https://emoji-api.com/emojis?access_key=96343d0333f6bfd6111f7b622ab4a31005c565de')
+        .then(response => response.json())
+        .then(data => {
+            allEmojis = data;
+            displayEmojis(allEmojis);
+        })
+        .catch(error => {
+            console.error('Error fetching emojis:', error);
+        });
     }
 }
 
@@ -90,19 +99,16 @@ function displayEmojis(emojis,limit=200) {
 
 function searchEmojis() {
     const searchTerm = document.getElementById('emoji-search').value.toLowerCase();
-    // array.filter takes a predicate
-    // use string.includes. 
-
-    const filteredEmojis = allEmojis.filter(...);
+    const filteredEmojis = allEmojis.filter(emoji =>
+                emoji.slug.toLowerCase().includes(searchTerm)
+            );
     
     displayEmojis(filteredEmojis);
 }
 
 function insertEmoji(emoji) {
-    // put an emoji on a form somehow. 
-
-    // do this when you're doing getting the emoji on the form
-    //
+    const textarea = document.getElementById('post-content');
+    textarea.value += emoji;
     textarea.focus();  // Keep focus on the textarea
 }
 </script>

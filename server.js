@@ -4,6 +4,9 @@ const expressHandlebars = require('express-handlebars');
 const session = require('express-session');
 const { createCanvas } = require('canvas');
 
+const dotenv = require('dotenv').config(); 
+const accessToken = process.env.EMOJI_API_KEY;
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Configuration and Setup
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

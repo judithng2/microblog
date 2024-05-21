@@ -43,7 +43,6 @@
         const buttonElement = event.target.closest('.delete-button');
         const pstId = buttonElement.getAttribute('data-id');  
         let deleteUrl = '/delete/:id';
-        console.log(pstId);
              
         fetch(deleteUrl, {
             method: "POST",
