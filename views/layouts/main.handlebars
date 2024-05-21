@@ -6,14 +6,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">   
     
-    <!-- font awesome for the trashcan icon --> 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">    
-
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Edu TAS Beginner|Quicksand">
     
-    <title>{{{appName}}}</title>
-
     <link rel="stylesheet" href="/css/style.css">
+
+    <title>{{{appName}}}</title>
 </head>
 
 <body>
@@ -23,14 +21,13 @@
             <ul>
                 <li><a href="/"><img  class="header-logo" src="images/Blog Logo.png" alt="Pets" title="Pets"></a></li>
                 <li><a id="title" href="/">{{{appName}}}</a></li>
-                <!-- conditional rendering based on variables - Is the user logged in?-->
+                
                 <div class="topnav-right">
                     {{#if loggedIn}}
                         <li><a href="/">Home</a></li>
                         <li><a href="/profile">Profile</a></li>
                         <li><a href="/logout">Logout <span>{{user.username}}</span> </a></li>
                         <li><a class="avatar" href="/profile">
-                            <!-- conditional rendering based on variables -->
                             <img src="{{#if user.avatar_url}}
                                             {{user.avatar_url}}
                                         {{else}}

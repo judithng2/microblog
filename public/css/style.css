@@ -21,7 +21,7 @@ span {
     padding: 0px 0px 0px 10px;
 }
 
-span:hover {
+span:hover:not(#postLikes) {
     color: cornflowerblue;
 }
 

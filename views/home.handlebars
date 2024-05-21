@@ -38,12 +38,12 @@
             {{#each posts}}
                 <!-- you have to pass the user in to posts and this is the syntax -->
                 <article class="each-post">
-                    {{> post this}}  
+                    {{> post this user=../user}}  
                 </article>
             {{/each}}
         </ul>
         {{else}}
-            <!-- no posts, oh no, what now? -->
+            <p>No posts yet :C Post something!!</p>
         {{/if}}
     </section>
 </section>

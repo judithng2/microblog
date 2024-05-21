@@ -1,23 +1,21 @@
+
 {{! Partial for a single post }}
 <div class="post">
     <div class="post-avatar">
-        <!-- the user's avatar -->
         <img src="/avatar/{{username}}" alt="User Avatar">
     </div>
     <div class="post-content preserve-newlines">
-        <!-- the post -->
         <h3>{{title}}</h3>
         <p>{{content}}</p>
         <div class="post-status-bar">
-            <!-- everything that is shown in the status bar -->
-            <!-- Heart = ♡ -->
-            <!-- font awesome  trashcan = <i class="fas fa-trash-alt"> </i>-->
-            {{#ifCond username ../user.username}}
-                <button class="delete-button" onclick="handleDeleteClick" data-id={{id}}>🗑️</button>
+            {{#ifCond username this.user.username}}
+                <button class="delete-button" onclick="handleDeleteClick(event)" data-id={{id}}>
+                    <i class="fas fa-trash-alt"></i>
+                </button>
             {{else}}
-                <button onClick="handleLikeClick" data-id={{id}}>♡</button>
+                <button onClick="handleLikeClick(event)" data-id={{id}}>♡</button>
             {{/ifCond}}
-            {{likes}} Likes Posted by {{username}}
+            <span id="postLikes">{{likes}} likes</span> Likes Posted by {{username}}
             <p>{{timestamp}}</p>
         </div>        
     </div>
@@ -28,7 +26,6 @@
         const pstId = event.target.getAttribute('data-id');
         let likeUrl = '/like/:id';
 
-        // you might want to "fetch" something...  
         fetch(likeUrl, {
             method: "POST", 
             headers: {
@@ -46,13 +43,15 @@
         const buttonElement = event.target.closest('.delete-button');
         const postId = buttonElement.getAttribute('data-id');  
         let deleteUrl = '/delete/:id';
-        // you might want to "fetch" something...        
+             
         fetcth(deleteUrl, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({postId: pstId})
+            body: JSON.stringify({
+                postId: pstId
+            })
         })
         .then(statusCheck).then(processData)
         .catch(handleError);
