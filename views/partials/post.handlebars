@@ -41,10 +41,11 @@
 
     function handleDeleteClick(event) {
         const buttonElement = event.target.closest('.delete-button');
-        const postId = buttonElement.getAttribute('data-id');  
+        const pstId = buttonElement.getAttribute('data-id');  
         let deleteUrl = '/delete/:id';
+        console.log(pstId);
              
-        fetcth(deleteUrl, {
+        fetch(deleteUrl, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'

@@ -376,11 +376,13 @@ function generateAvatar(letter, width = 80, height = 80) {
 function deletePost(req, res) {
     let currUsr = getCurrentUser(req);
     let dltPost = findPostById(req.body.postId);
+
     if (currUsr.username == dltPost.username) {
         const indx = posts.indexOf(dltPost);
         if (indx > -1) {
             posts.splice(indx, 1);
             res.status(200);
+            res.send({ success: true });
         } else {
             res.status(404);
         }
