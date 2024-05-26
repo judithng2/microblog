@@ -306,7 +306,6 @@ function renderProfile(req, res) {
 // Function to update post likes
 function updatePostLikes(req, res) {
     // TODO: Increment post likes if conditions are met
-    console.log(req.body.postId);
     let likedPost = findPostById(req.body.postId);
     if (likedPost) {
         likedPost.likes += 1;
