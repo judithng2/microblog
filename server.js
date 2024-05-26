@@ -235,7 +235,7 @@ function getTimeStamp() {
 // Function to add a new user
 function addUser(username) {
     // TODO: Create a new user object and add to users array
-    let usrId = users.length + 1;
+    let usrId = users[users.length - 1].id + 1;
     let usrTime = getTimeStamp();
     let newUser = {id: usrId, username: username, avatar_url: undefined, memberSince: usrTime};
     users.push(newUser);
@@ -306,6 +306,7 @@ function renderProfile(req, res) {
 // Function to update post likes
 function updatePostLikes(req, res) {
     // TODO: Increment post likes if conditions are met
+    console.log(req.body.postId);
     let likedPost = findPostById(req.body.postId);
     if (likedPost) {
         likedPost.likes += 1;
@@ -344,7 +345,7 @@ function getPosts() {
 // Function to add a new post
 function addPost(title, content, user) {
     // TODO: Create a new post object and add to posts array
-    let pstID = posts.length;
+    let pstID = posts[posts.length - 1].id + 1;
     let pstTime = getTimeStamp();
     let newPst = { id: pstID, title: title, content: content, username: user, timestamp: pstTime, likes: 0 };
     posts.push(newPst);
