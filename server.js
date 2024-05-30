@@ -6,6 +6,8 @@ const { createCanvas } = require('canvas');
 
 require('dotenv').config(); 
 const accessToken = process.env.EMOJI_API_KEY;
+const clientID = process.env.CLIENT_ID;
+const clientSecret = process.env.CLIENT_SECRET;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Configuration and Setup
