@@ -3,11 +3,12 @@ const express = require('express');
 const expressHandlebars = require('express-handlebars');
 const session = require('express-session');
 const { createCanvas } = require('canvas');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const crypto = require('crypto');
 
 require('dotenv').config(); 
 const accessToken = process.env.EMOJI_API_KEY;
-const clientID = process.env.CLIENT_ID;
-const clientSecret = process.env.CLIENT_SECRET;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Configuration and Setup
@@ -93,6 +94,26 @@ app.use(express.static('public'));                  // Serve static files
 app.use(express.urlencoded({ extended: true }));    // Parse URL-encoded bodies (as sent by HTML forms)
 app.use(express.json());                            // Parse JSON bodies (as sent by API clients)
 
+
+// Configure passport
+passport.use(new GoogleStrategy({
+    clientID: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    callbackURL: `http://localhost:${PORT}/auth/google/callback`,
+    userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo', //////////////////////////////////////////////
+        scope:['profile']
+}, (token, tokenSecret, profile, done) => {
+    return done(null, profile);
+}));
+
+passport.serializeUser((user, done) => {
+    done(null, user);
+});
+
+passport.deserializeUser((obj, done) => {
+    done(null, obj);
+});
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Routes
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -107,16 +128,35 @@ app.get('/', (req, res) => {
     res.render('home', { posts, user });
 });
 
-// Register GET route is used for error response from registration
-//
-app.get('/register', (req, res) => {
-    res.render('loginRegister', { regError: req.query.error });
-});
+app.get('/auth/google', passport.authenticate('google'));
 
-// Login route GET route is used for error response from login
-//
-app.get('/login', (req, res) => {
-    res.render('loginRegister', { loginError: req.query.error });
+// Handle Google callback
+app.get('/auth/google/callback', 
+    passport.authenticate('google', {failureRedirect: '/'}),
+    async (req, res) => {
+        const googleId = req.user.id;
+        const hashedGoogleId = crypto.hash('SHA-256', googleId.toString());
+        req.session.hashedGoogleId = hashedGoogleId;
+
+        try {
+            let localUser = await findUserByHashedGoogleid(hashedGoogleId);
+            if (localUser) {
+                req.session.userId = localUser.id;
+                req.session.loggedIn = true;
+                res.redirect('/');
+            } else {
+                res.redirect('/registerUsername');
+            }
+        }
+        catch(err) {
+            console.error("Error finding user:", err);
+            res.redirect('error');
+        }
+    }
+);
+
+app.get('/registerUsername', (req, res) => {
+    res.render('registerUsername');
 });
 
 // Error route: render error page
@@ -148,13 +188,9 @@ app.get('/avatar/:username', (req, res) => {
     // TODO: Serve the avatar image for the user
     handleAvatar(req, res);
 });
-app.post('/register', (req, res) => {
+app.post('/registerUsername', (req, res) => {
     // TODO: Register a new user
     registerUser(req, res);
-});
-app.post('/login', (req, res) => {
-    // TODO: Login a user
-    loginUser(req, res);
 });
 app.get('/logout', (req, res) => {
     // TODO: Logout the user
@@ -178,6 +214,9 @@ app.get('/emojis', async (req, res) => {
         res.status(500).send('Error fetching emojis');
     }
 });
+app.get('/googleLogout', (req, res) => {
+    res.render('googleLogout');
+});
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Server Activation
@@ -197,8 +236,8 @@ let posts = [
     { id: 2, title: 'Another Post', content: 'This is another sample post.', username: 'AnotherUser', timestamp: '2024-01-02 12:00', likes: 0 },
 ];
 let users = [
-    { id: 1, username: 'SampleUser', avatar_url: undefined, memberSince: '2024-01-01 08:00' },
-    { id: 2, username: 'AnotherUser', avatar_url: undefined, memberSince: '2024-01-02 09:00' },
+    { id: 1, username: 'SampleUser', hashedGoogleId: '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', avatar_url: undefined, memberSince: '2024-01-01 08:00' },
+    { id: 2, username: 'AnotherUser', hashedGoogleId: 'd4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35', avatar_url: undefined, memberSince: '2024-01-02 09:00' },
 ];
 
 
@@ -217,7 +256,7 @@ function findUserById(userId) {
     // TODO: Return user object if found, otherwise return undefined
     for (let i = 0; i < users.length; i++) {
         if (userId == users[i].id)
-            return users[i]
+            return users[i];
     }
     return undefined;
 }
@@ -242,11 +281,11 @@ function getTimeStamp() {
 }
 
 // Function to add a new user
-function addUser(username) {
+function addUser(req) {
     // TODO: Create a new user object and add to users array
     let usrId = users[users.length - 1].id + 1;
     let usrTime = getTimeStamp();
-    let newUser = {id: usrId, username: username, avatar_url: undefined, memberSince: usrTime};
+    let newUser = {id: usrId, username: req.body.username, hashedGoogleId: req.session.hashedGoogleId, avatar_url: undefined, memberSince: usrTime};
     users.push(newUser);
 }
 
@@ -263,9 +302,9 @@ function isAuthenticated(req, res, next) {
 function registerUser(req, res) {
     // TODO: Register a new user and redirect appropriately
     if (findUserByUsername(req.body.username)) {
-        res.redirect('/register?error=Username+already+exists');
+        res.render('registerUsername', {regError: 'username already exists'});
     } else {
-        addUser(req.body.username);
+        addUser(req);
         loginUser(req, res);
     }
 }
@@ -292,7 +331,7 @@ function logoutUser(req, res) {
             console.error('Error destroying session:', err);
             res.redirect('/error');
         } else {
-            res.redirect('/');
+            res.redirect('/googleLogout');
         }
     });
 }
@@ -409,6 +448,14 @@ function findPostById(idVal) {
         if (idVal == psts[i].id) {
             return psts[i];
         }
+    }
+    return undefined;
+}
+
+function findUserByHashedGoogleid(hashedGoogleId) {
+    for (let i = 0; i < users.length; i++) {
+        if (hashedGoogleId == users[i].hashedGoogleId)
+            return users[i];
     }
     return undefined;
 }
