@@ -4,7 +4,7 @@ const expressHandlebars = require('express-handlebars');
 const session = require('express-session');
 const { createCanvas } = require('canvas');
 
-const dotenv = require('dotenv').config(); 
+require('dotenv').config(); 
 const accessToken = process.env.EMOJI_API_KEY;
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -125,7 +125,6 @@ app.get('/error', (req, res) => {
 
 
 // Additional routes that you must implement
-
 app.post('/posts', (req, res) => {
     // TODO: Add a new post and redirect to home
     if (req.session.userId){
@@ -135,15 +134,13 @@ app.post('/posts', (req, res) => {
 });
 app.post('/like/:id', (req, res) => {
     // TODO: Update post likes
-    if (req.session.userId){
+    if (req.session.userId)
         updatePostLikes(req, res);
-    }
 });
 app.get('/profile', isAuthenticated, (req, res) => {
     // TODO: Render profile page
-    if (req.session.userId) {
+    if (req.session.userId)
         renderProfile(req, res);
-    }
 });
 app.get('/avatar/:username', (req, res) => {
     // TODO: Serve the avatar image for the user
@@ -159,14 +156,24 @@ app.post('/login', (req, res) => {
 });
 app.get('/logout', (req, res) => {
     // TODO: Logout the user
-    if (req.session.userId) {
+    if (req.session.userId)
         logoutUser(req, res);
-        }
 });
 app.post('/delete/:id', isAuthenticated, (req, res) => {
     // TODO: Delete a post if the current user is the owner
     if (req.session.userId) {
         deletePost(req, res);
+    }
+});
+app.get('/emojis', async (req, res) => {
+    // TODO: fetch emoji stuff
+    try {
+        const response = await fetch(`https://emoji-api.com/emojis?access_key=${accessToken}`);
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error('Error fetching emojis:', error);
+        res.status(500).send('Error fetching emojis');
     }
 });
 

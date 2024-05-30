@@ -61,7 +61,7 @@ input, textarea {
     min-width: 400px;
 }
 
-textarea, .emoji-panel {
+textarea {
     height: 150px;
 }
 
@@ -145,9 +145,30 @@ textarea, .emoji-panel {
     font-size: 50px;
     padding-top: 40%;
 }
+/* input {
+    width: 100px;
+  } */
 
-#emoji-grid {
-    max-width: 400px;
+#emoji-search {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 10px;
+    box-sizing: border-box; 
+}
+
+#emoji-container {
+    border: 1px solid gray;
+    padding: 10px;
+    margin-top: 20px;
+    width: 400px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+#emoji-grid span {
+    font-size: 24px;
+    margin: 5px;
+    cursor: pointer;
 }
 
 @media screen and (max-width: 1200px) {
