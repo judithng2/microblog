@@ -9,6 +9,14 @@ const crypto = require('crypto');
 
 require('dotenv').config(); 
 const accessToken = process.env.EMOJI_API_KEY;
+const clientID = process.env.CLIENT_ID;
+const clientSecret = process.env.CLIENT_SECRET;
+
+const sqlite = require('sqlite');
+const sqlite3 = require('sqlite3');
+
+const { initializeDB } = require('./populatedb.js');
+const { showDatabaseContents } = require('./showdb.js');
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Configuration and Setup
@@ -118,14 +126,11 @@ passport.deserializeUser((obj, done) => {
 // Routes
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// Home route: render home view with posts and user
-// We pass the posts and user variables into the home
-// template
-//
-app.get('/', (req, res) => {
-    const posts = getPosts();
-    const user = getCurrentUser(req) || {};
-    res.render('home', { posts, user });
+// GETs ---------------------------------------------------------------------------
+app.get('/', async (req, res) => {
+    const posts = await getPosts();
+    const user = await getCurrentUser(req) || {};
+    res.render('home', { user, posts });
 });
 
 app.get('/auth/google', passport.authenticate('google'));
@@ -163,53 +168,17 @@ app.get('/loginregister', (req, res) => {
     res.render('loginRegister');
 });
 
-// Error route: render error page
-//
-app.get('/error', (req, res) => {
-    res.render('error');
-});
-
-
-// Additional routes that you must implement
-app.post('/posts', (req, res) => {
-    // TODO: Add a new post and redirect to home
-    if (req.session.userId){
-        addPost(req.body.title, req.body.content, findUserById(req.session.userId).username);
-        res.redirect('/');
-    }
-});
-app.post('/like/:id', (req, res) => {
-    // TODO: Update post likes
-    if (req.session.userId)
-        updatePostLikes(req, res);
-});
 app.get('/profile', isAuthenticated, (req, res) => {
     // TODO: Render profile page
     if (req.session.userId)
         renderProfile(req, res);
 });
+
 app.get('/avatar/:username', (req, res) => {
     // TODO: Serve the avatar image for the user
     handleAvatar(req, res);
 });
-app.post('/loginRegister', (req, res) => {
-    res.redirect('/auth/google');
-});
-app.post('/registerUsername', (req, res) => {
-    // TODO: Register a new user
-    registerUser(req, res);
-});
-app.get('/logout', (req, res) => {
-    // TODO: Logout the user
-    if (req.session.userId)
-        logoutUser(req, res);
-});
-app.post('/delete/:id', isAuthenticated, (req, res) => {
-    // TODO: Delete a post if the current user is the owner
-    if (req.session.userId) {
-        deletePost(req, res);
-    }
-});
+
 app.get('/emojis', async (req, res) => {
     // TODO: fetch emoji stuff
     try {
@@ -221,52 +190,73 @@ app.get('/emojis', async (req, res) => {
         res.status(500).send('Error fetching emojis');
     }
 });
+
 app.get('/googleLogout', (req, res) => {
     res.render('googleLogout');
+});
+
+// Error route: render error page
+app.get('/error', (req, res) => {
+    res.render('error');
+});
+
+// POSTs -------------------------------------------------------------------------
+app.post('/registerUsername', (req, res) => {
+    // TODO: Register a new user
+    registerUser(req, res);
+});
+
+app.post('/loginRegister', (req, res) => {
+    res.redirect('/auth/google');
+});
+
+// Additional routes that you must implement
+app.post('/posts', async (req, res) => {
+    // TODO: Add a new post and redirect to home
+    if (req.session.userId){
+        const user = await getCurrentUser(req);
+        await addPost(req.body.title, req.body.content, user.username);
+        res.redirect('/');
+    }
+});
+
+app.post('/like/:id', (req, res) => {
+    // TODO: Update post likes
+    if (req.session.userId)
+        updatePostLikes(req, res);
+});
+
+app.post('/delete/:id', isAuthenticated, (req, res) => {
+    // TODO: Delete a post if the current user is the owner
+    if (req.session.userId) {
+        deletePost(req, res);
+    }
+});
+app.get('/logout', (req, res) => {
+    // TODO: Logout the user
+    if (req.session.userId)
+        logoutUser(req, res);
 });
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Server Activation
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+const dbFileName = './database.db';
+
+// Ensure the database is initialized before starting the server.
+initializeDB().then(() => {
+    console.log('Database initialized. Server starting...');
+    app.listen(PORT, () => {
+        console.log(`Server is running on http://localhost:${PORT}`);
+    });
+}).catch(err => {
+    console.error('Failed to initialize the database:', err);
 });
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Support Functions and Variables
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-// Example data for posts and users
-let posts = [
-    { id: 1, title: 'Dogs are so loyal', content: 'Just watched the video of the dog who waits for his owner at the train station. CRYING', username: 'DogLover', timestamp: '2024-05-19 10:00', likes: 0 },
-    { id: 2, title: 'Sleepy Cats', content: 'Cats napping. That\'s it, that\'s the post.', username: 'CatsRule', timestamp: '2024-05-20 12:00', likes: 0 },
-];
-let users = [
-    { id: 1, username: 'DogLover', hashedGoogleId: '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', avatar_url: undefined, memberSince: '2024-05-19 08:00' },
-    { id: 2, username: 'CatsRule', hashedGoogleId: 'd4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35', avatar_url: undefined, memberSince: '2024-05-20 09:00' },
-];
-
-
-// Function to find a user by username
-function findUserByUsername(username) {
-    // TODO: Return user object if found, otherwise return undefined
-    for (let i = 0; i < users.length; i++) {
-        if (username == users[i].username)
-            return users[i];
-    }
-    return undefined;
-}
-
-// Function to find a user by user ID
-function findUserById(userId) {
-    // TODO: Return user object if found, otherwise return undefined
-    for (let i = 0; i < users.length; i++) {
-        if (userId == users[i].id)
-            return users[i];
-    }
-    return undefined;
-}
 
 function getTimeStamp() {
     let tempDate = new Date();
@@ -287,13 +277,85 @@ function getTimeStamp() {
     return timeSt;
 }
 
+// Function to find a user by username
+async function findUserByUsername(username) {
+    // TODO: Return user object if found, otherwise return undefined
+    const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+
+    try {
+        const user = await db.get('SELECT * FROM users WHERE username = ?', [username]);
+        if (user == null)
+            return undefined;
+
+        return user;
+        
+    } catch (err) {
+        console.error('Error finding user by username:', err);
+    } finally {
+        await db.close();
+    }
+}
+
+// Function to find a user by user ID
+async function findUserById(userId) {
+    // TODO: Return user object if found, otherwise return undefined
+    const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+
+    try {
+        const user = await db.get('SELECT * FROM users WHERE id = ?', [userId]);
+        if (user == null)
+            return undefined;
+
+        return user;
+        
+    } catch (err) {
+        console.error('Error finding user by id:', err);
+    } finally {
+        await db.close();
+    }
+}
+
+async function findUserByHashedGoogleid(hashedGoogleId) {
+    const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+
+    try {
+        const user = await db.get('SELECT * FROM users WHERE hashedGoogleId = ?', [hashedGoogleId]);
+        if (user == null)
+            return undefined;
+
+        return user;
+        
+    } catch (err) {
+        console.error('Error finding user by hashedGoogleId:', err);
+    } finally {
+        await db.close();
+    }
+}
+
+// Function to get the current user from session
+async function getCurrentUser(req) {
+    // TODO: Return the user object if the session user ID matches
+    return await findUserById(req.session.userId);
+}
+
 // Function to add a new user
-function addUser(req) {
+async function addUser(req) {
     // TODO: Create a new user object and add to users array
-    let usrId = users[users.length - 1].id + 1;
-    let usrTime = getTimeStamp();
-    let newUser = {id: usrId, username: req.body.username, hashedGoogleId: req.session.hashedGoogleId, avatar_url: undefined, memberSince: usrTime};
-    users.push(newUser);
+    const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+
+    try {
+        let usrTime = getTimeStamp();
+        
+        await db.run(
+            'INSERT INTO users (username, hashedGoogleId, avatar_url, memberSince) VALUES (?, ?, ?, ?)',
+            [req.body.username, req.session.hashedGoogleId, undefined, usrTime]
+        );
+        
+    } catch (err) {
+        console.error('Error adding user:', err);
+    } finally {
+        await db.close();
+    }
 }
 
 // Middleware to check if user is authenticated
@@ -306,23 +368,22 @@ function isAuthenticated(req, res, next) {
 }
 
 // Function to register a user
-function registerUser(req, res) {
-    // TODO: Register a new user and redirect appropriately
-    if (findUserByUsername(req.body.username)) {
+async function registerUser(req, res) {
+    const user = await findUserByUsername(req.body.username);
+    if (user) {
+        // res.redirect('/register?error=Username+already+exists');
         res.render('registerUsername', {regError: 'username already exists'});
     } else {
-        addUser(req);
-        loginUser(req, res);
+        await addUser(req);
+        await loginUser(req, res);
     }
 }
 
 // Function to login a user
-function loginUser(req, res) {
-    // TODO: Login a user and redirect appropriately
-    const usrName = req.body.username;
-    const usr = findUserByUsername(usrName);
-    if (usr) {
-        req.session.userId = usr.id;
+async function loginUser(req, res) {
+    const user = await findUserByUsername(req.body.username);
+    if (user) {
+        req.session.userId = user.id;
         req.session.loggedIn = true;
         res.redirect('/');
     } else {
@@ -344,10 +405,10 @@ function logoutUser(req, res) {
 }
 
 // Function to render the profile page
-function renderProfile(req, res) {
+async function renderProfile(req, res) {
     // TODO: Fetch user posts and render the profile page
-    let curr = getCurrentUser(req);
-    let psts = getPosts();
+    let curr = await getCurrentUser(req);
+    let psts = await getPosts();
     let user = {username: curr.username, memberSince: curr.memberSince, posts: []};
     for (let i = 0; i < psts.length; i++) {
         if (psts[i].username == curr.username) {
@@ -358,51 +419,118 @@ function renderProfile(req, res) {
     res.render('profile', {user, postNeoType});
 }
 
+async function findPostById(idVal) {
+    const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+
+    try {
+        const post = await db.get('SELECT * FROM posts WHERE id = ?', [idVal]);
+        if (post == null)
+            return undefined;
+
+        return post;
+        
+    } catch (err) {
+        console.error('Error finding user by id:', err);
+    } finally {
+        await db.close();
+    }
+}
+
+// Function to get all posts, sorted by latest first
+async function getPosts() {
+
+    const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+
+    try {
+        const posts = await db.all('SELECT * FROM posts ORDER BY timestamp DESC');
+        if (posts == null)
+            return undefined;
+
+        return posts;
+    } catch (err) {
+        console.error('Error updating post likes:', err);
+    } finally {
+        await db.close();
+    }
+}
+
+// Function to add a new post
+async function addPost(title, content, user) {
+    // TODO: Create a new post object and add to posts array
+    const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+
+    try {
+        let usrTime = getTimeStamp();
+        await db.run(
+            'INSERT INTO posts (title, content, pet, username, timestamp, likes) VALUES (?, ?, ?, ?, ?, ?)',
+            [title, content, 'IMPLEMENT PET', user, usrTime, 0]
+        );
+        
+    } catch (err) {
+        console.error('Error adding post:', err);
+    } finally {
+        await db.close();
+    }
+}
+
 // Function to update post likes
-function updatePostLikes(req, res) {
+async function updatePostLikes(req, res) {
     // TODO: Increment post likes if conditions are met
-    let likedPost = findPostById(req.body.postId);
+    let likedPost = await findPostById(req.body.postId);
+
     if (likedPost) {
-        likedPost.likes += 1;
-        res.status(200);
-        res.send({value: likedPost.likes});
+        const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+
+        try {
+            await db.run('UPDATE posts SET likes = ? WHERE id = ?', [likedPost.likes + 1, req.body.postId]);
+
+            res.status(200);
+            res.send({value: likedPost.likes + 1});
+        } catch (err) {
+            console.error('Error updating post likes:', err);
+        } finally {
+            await db.close();
+        }
+    }
+}
+
+async function deletePost(req, res) {
+    let currUsr = getCurrentUser(req);
+    let dltPost = findPostById(req.body.postId);
+
+    if (currUsr.username == dltPost.username) {
+        const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+
+        try {
+            await db.run('DELETE FROM posts WHERE id = ?', [req.body.postId]);
+            res.status(200);
+            res.send({ success: true });
+            
+        } catch (err) {
+            console.error('Error adding user:', err);
+        } finally {
+            await db.close();
+        }
+    } else {
+        res.status(401);
     }
 }
 
 // Function to handle avatar generation and serving
-function handleAvatar(req, res) {
+async function handleAvatar(req, res) {
     // TODO: Generate and serve the user's avatar image
     const { username } = req.params;
-    const user = findUserByUsername(username);
+    const user = await findUserByUsername(username);
 
-    if (user != undefined) {
+    if (user) {
         const letter = username.charAt(0).toUpperCase();
         const avatar = generateAvatar(letter);
 
         res.set('Content-Type', 'image/png');
+        res.status(200);
         res.send(avatar);
     } else
         res.status(404).send('User not found');
-}
-
-// Function to get the current user from session
-function getCurrentUser(req) {
-    // TODO: Return the user object if the session user ID matches
-    return findUserById(req.session.userId);
-}
-
-// Function to get all posts, sorted by latest first
-function getPosts() {
-    return posts.slice().reverse();
-}
-
-// Function to add a new post
-function addPost(title, content, user) {
-    // TODO: Create a new post object and add to posts array
-    let pstID = posts[posts.length - 1].id + 1;
-    let pstTime = getTimeStamp();
-    let newPst = { id: pstID, title: title, content: content, username: user, timestamp: pstTime, likes: 0 };
-    posts.push(newPst);
 }
 
 // Function to generate an image avatar
@@ -429,40 +557,4 @@ function generateAvatar(letter, width = 80, height = 80) {
     ctx.fillText(letter, width / 2, height / 2);
 
     return canvas.toBuffer('image/png');
-}
-
-function deletePost(req, res) {
-    let currUsr = getCurrentUser(req);
-    let dltPost = findPostById(req.body.postId);
-
-    if (currUsr.username == dltPost.username) {
-        const indx = posts.indexOf(dltPost);
-        if (indx > -1) {
-            posts.splice(indx, 1);
-            res.status(200);
-            res.send({ success: true });
-        } else {
-            res.status(404);
-        }
-    } else {
-        res.status(401);
-    }
-}
-
-function findPostById(idVal) {
-    let psts = getPosts();
-    for (let i = 0; i < psts.length; i++) {
-        if (idVal == psts[i].id) {
-            return psts[i];
-        }
-    }
-    return undefined;
-}
-
-function findUserByHashedGoogleid(hashedGoogleId) {
-    for (let i = 0; i < users.length; i++) {
-        if (hashedGoogleId == users[i].hashedGoogleId)
-            return users[i];
-    }
-    return undefined;
 }
