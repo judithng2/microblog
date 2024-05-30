@@ -16,7 +16,7 @@
                     <textarea id="post-content" name="content" placeholder="Start writing..."required></textarea>
 
                     <div>
-                        <button type="button" class="emoji-button" onclick="toggleEmojiPanel()">😀</button>
+                        <button type="button" class="emoji-button" onclick="activeEmojiPanel()">😀</button>
                         <button type="submit" class="post-button" name="submit" id="submit-in">Post</button>
                     </div>
                 </article>
@@ -33,14 +33,15 @@
     <section class="vertical-list">
         <!-- recent posts -->
         <h2>Recent Posts</h2>
+        <div>
+            <p>Sort by:
+            <button type="button" class="sort-button" onclick="sortByLike(); isActive(this)">Most Likes</button>
+            <button type="button" class="sort-button activated" onclick="sortByRecent(); isActive(this)">Most Recent</button>
+            </p>
+        </div>
         {{#if posts.length}}
             <ul>
-                {{#each posts}}
-                    <!-- you have to pass the user in to posts and this is the syntax -->
-                    <article class="each-post">
-                        {{> post this user=../user}}  
-                    </article>
-                {{/each}}
+                {{> postList this}}
             </ul>
         {{else}}
             <p>No posts yet :C Post something!!</p>
@@ -48,9 +49,39 @@
     </section>
 </section>
 
-
-{{! JavaScript for Emoji Integration }}
 <script>
+
+function isActive(button) {
+    if (!button.classList.contains('activated')) {
+      document.querySelectorAll(".activated").forEach(btn => btn.classList.remove('activated'));
+      button.classList.add('activated');
+      return;
+    } 
+    button.classList.remove('activated')
+}
+
+function sortByLike() {
+    fetch('/sort/like')
+    .then(response => response.text())  // Expecting HTML response
+    .then(html => {
+        const postList = document.querySelector('.vertical-list ul');
+        postList.innerHTML = html;  // Insert the rendered HTML into the DOM
+    })
+    .catch(error => {
+        console.error('Error sorting posts by likes:', error);
+    });
+}
+
+function sortByRecent() {
+    fetch('/')
+    .then(response => response.text())
+    .then(html => {
+        document.body.innerHTML = html;
+    })
+    .catch(error => {
+        console.error('Error sorting by recent:', error);
+    });
+}
 
 /*
  You want to show a subset of the emojis. About 200. However,
@@ -61,7 +92,7 @@
 
 let allEmojis = [];  // Global list to hold all emojis
 
-function toggleEmojiPanel() {
+function activeEmojiPanel() {
     const container = document.getElementById('emoji-container');
     container.style.display = container.style.display === 'none' ? 'block' : 'none';
 
@@ -79,7 +110,7 @@ function toggleEmojiPanel() {
     }
 }
 
-function displayEmojis(emojis,limit=100) {
+function displayEmojis(emojis, limit=100) {
     const container = document.getElementById('emoji-grid');
     container.innerHTML = '';  // Clear previous results
     if (Array.isArray(emojis) && emojis.length > 0) {

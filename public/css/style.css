@@ -89,6 +89,8 @@ textarea {
     justify-content: left;
 
     gap: 5%;
+
+    min-width: 500px;
 }
 
 .post-avatar {
@@ -139,6 +141,22 @@ textarea {
     margin-top: -2%;
 }
 
+.sort-button {
+    background-color: white;
+    border: none;
+    color: black;
+
+    margin-bottom: 10px;
+}
+
+.sort-button:hover {
+    color: cornflowerblue;
+}
+
+.activated {
+    color: cadetblue;
+}
+
 #title {
     font-family: 'Edu TAS Beginner';
     font-weight: bold;
@@ -177,6 +195,8 @@ textarea {
         flex-direction: column;
         justify-content: center;
         align-items: center;
+
+        min-width: 300px;
     }
     .post-avatar {
         padding: 5% 5%;

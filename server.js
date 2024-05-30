@@ -191,6 +191,20 @@ app.get('/emojis', async (req, res) => {
     }
 });
 
+app.get('/sort/like', async (req, res) => {
+    const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+
+    try {
+        const posts = await db.all('SELECT * FROM posts ORDER BY likes DESC');
+        res.render('partials/postList', { posts, layout: false });
+    } catch (err) {
+        console.error('Error sorting post likes:', err);
+        res.status(500).send('Internal Server Error');
+    } finally {
+        await db.close();
+    }
+});
+
 app.get('/googleLogout', (req, res) => {
     res.render('googleLogout');
 });
@@ -472,6 +486,22 @@ async function addPost(title, content, user) {
         await db.close();
     }
 }
+
+// async function sortByLikes() {
+//     const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+
+//     try {
+//         const posts = await db.all('SELECT * FROM posts ORDER BY likes DESC');
+//         if (posts == null)
+//             return undefined;
+
+//         return posts;
+//     } catch (err) {
+//         console.error('Error sorting post likes:', err);
+//     } finally {
+//         await db.close();
+//     }
+// }
 
 // Function to update post likes
 async function updatePostLikes(req, res) {
