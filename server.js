@@ -100,7 +100,7 @@ passport.use(new GoogleStrategy({
     clientID: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
     callbackURL: `http://localhost:${PORT}/auth/google/callback`,
-    userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo', //////////////////////////////////////////////
+    userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo',
         scope:['profile']
 }, (token, tokenSecret, profile, done) => {
     return done(null, profile);
@@ -159,6 +159,10 @@ app.get('/registerUsername', (req, res) => {
     res.render('registerUsername');
 });
 
+app.get('/loginregister', (req, res) => {
+    res.render('loginRegister');
+});
+
 // Error route: render error page
 //
 app.get('/error', (req, res) => {
@@ -187,6 +191,9 @@ app.get('/profile', isAuthenticated, (req, res) => {
 app.get('/avatar/:username', (req, res) => {
     // TODO: Serve the avatar image for the user
     handleAvatar(req, res);
+});
+app.post('/loginRegister', (req, res) => {
+    res.redirect('/auth/google');
 });
 app.post('/registerUsername', (req, res) => {
     // TODO: Register a new user
@@ -232,12 +239,12 @@ app.listen(PORT, () => {
 
 // Example data for posts and users
 let posts = [
-    { id: 1, title: 'Sample Post', content: 'This is a sample post.', username: 'SampleUser', timestamp: '2024-01-01 10:00', likes: 0 },
-    { id: 2, title: 'Another Post', content: 'This is another sample post.', username: 'AnotherUser', timestamp: '2024-01-02 12:00', likes: 0 },
+    { id: 1, title: 'Dogs are so loyal', content: 'Just watched the video of the dog who waits for his owner at the train station. CRYING', username: 'DogLover', timestamp: '2024-05-19 10:00', likes: 0 },
+    { id: 2, title: 'Sleepy Cats', content: 'Cats napping. That\'s it, that\'s the post.', username: 'CatsRule', timestamp: '2024-05-20 12:00', likes: 0 },
 ];
 let users = [
-    { id: 1, username: 'SampleUser', hashedGoogleId: '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', avatar_url: undefined, memberSince: '2024-01-01 08:00' },
-    { id: 2, username: 'AnotherUser', hashedGoogleId: 'd4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35', avatar_url: undefined, memberSince: '2024-01-02 09:00' },
+    { id: 1, username: 'DogLover', hashedGoogleId: '6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b', avatar_url: undefined, memberSince: '2024-05-19 08:00' },
+    { id: 2, username: 'CatsRule', hashedGoogleId: 'd4735e3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35', avatar_url: undefined, memberSince: '2024-05-20 09:00' },
 ];
 
 
