@@ -109,7 +109,7 @@ passport.use(new GoogleStrategy({
     clientSecret: process.env.CLIENT_SECRET,
     callbackURL: `http://localhost:${PORT}/auth/google/callback`,
     userProfileURL: 'https://www.googleapis.com/oauth2/v3/userinfo',
-        scope:['profile']
+    scope:['profile']
 }, (token, tokenSecret, profile, done) => {
     return done(null, profile);
 }));
@@ -205,6 +205,38 @@ app.get('/sort/like', async (req, res) => {
     }
 });
 
+app.get('/sort/like/:type', async (req, res) => {
+    const petType = req.params.type;
+
+    const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+
+    try {
+        const posts = await db.all('SELECT * FROM posts WHERE pet = ? ORDER BY likes DESC', [petType.slice(1)]);
+        res.render('partials/postList', { posts, layout: false });
+    } catch (err) {
+        console.error('Error sorting post likes with pet:', err);
+        res.status(500).send('Internal Server Error');
+    } finally {
+        await db.close();
+    }
+});
+
+app.get('/sort/recent/:type', async (req, res) => {
+    const petType = req.params.type;
+
+    const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+
+    try {
+        const posts = await db.all('SELECT * FROM posts WHERE pet = ? ORDER BY timestamp DESC', [petType.slice(1)]);
+        res.render('partials/postList', { posts, layout: false });
+    } catch (err) {
+        console.error('Error sorting post recent with pet:', err);
+        res.status(500).send('Internal Server Error');
+    } finally {
+        await db.close();
+    }
+});
+
 app.get('/googleLogout', (req, res) => {
     res.render('googleLogout');
 });
@@ -229,7 +261,7 @@ app.post('/posts', async (req, res) => {
     // TODO: Add a new post and redirect to home
     if (req.session.userId){
         const user = await getCurrentUser(req);
-        await addPost(req.body.title, req.body.content, user.username);
+        await addPost(req.body.title, req.body.pets, req.body.content, user.username);
         res.redirect('/');
     }
 });
@@ -469,7 +501,7 @@ async function getPosts() {
 }
 
 // Function to add a new post
-async function addPost(title, content, user) {
+async function addPost(title, pet, content, user) {
     // TODO: Create a new post object and add to posts array
     const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
 
@@ -477,7 +509,7 @@ async function addPost(title, content, user) {
         let usrTime = getTimeStamp();
         await db.run(
             'INSERT INTO posts (title, content, pet, username, timestamp, likes) VALUES (?, ?, ?, ?, ?, ?)',
-            [title, content, 'IMPLEMENT PET', user, usrTime, 0]
+            [title, content, pet, user, usrTime, 0]
         );
         
     } catch (err) {
@@ -486,22 +518,6 @@ async function addPost(title, content, user) {
         await db.close();
     }
 }
-
-// async function sortByLikes() {
-//     const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
-
-//     try {
-//         const posts = await db.all('SELECT * FROM posts ORDER BY likes DESC');
-//         if (posts == null)
-//             return undefined;
-
-//         return posts;
-//     } catch (err) {
-//         console.error('Error sorting post likes:', err);
-//     } finally {
-//         await db.close();
-//     }
-// }
 
 // Function to update post likes
 async function updatePostLikes(req, res) {

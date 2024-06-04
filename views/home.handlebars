@@ -13,6 +13,18 @@
                 <!-- text area input field name = "content" -->
                 <article class="vertical-list">
                     <input type="text" name="title" placeholder="Title..." required>
+                    <select name="pets" id="pets" required>
+                        <option disabled selected value="">Pet...</option>
+                        <option value="cat">Cat</option>
+                        <option value="dog">Dog</option>
+                        <option value="bunny">Bunny</option>
+                        <option value="bird">Bird</option>
+                        <option value="fish">Fish</option>
+                        <option value="insect">Insect</option>
+                        <option value="reptile">Reptile</option>
+                        <option value="rodent">Rodent</option>
+                        <option value="misc">Misc.</option>
+                    </select>
                     <textarea id="post-content" name="content" placeholder="Start writing..."required></textarea>
 
                     <div>
@@ -20,7 +32,6 @@
                         <button type="submit" class="post-button" name="submit" id="submit-in">Post</button>
                     </div>
                 </article>
-                
             </form>
 
             <div id="emoji-container" style="display: none;">
@@ -35,8 +46,20 @@
         <h2>Recent Posts</h2>
         <div>
             <p>Sort by:
-            <button type="button" class="sort-button" onclick="sortByLike(); isActive(this)">Most Likes</button>
-            <button type="button" class="sort-button activated" onclick="sortByRecent(); isActive(this)">Most Recent</button>
+            <button id="sortLike" type="button" class="sort-button" onclick="sortByLike(); isActive(this)">Most Likes</button>
+            <button id="sortRecent" type="button" class="sort-button activated" onclick="sortByRecent(); isActive(this)">Most Recent</button>
+            <select id="sortPet" onchange="sortByPet()">
+                <option selected value="all">All Pets</option>
+                <option value="cat">Cat</option>
+                <option value="dog">Dog</option>
+                <option value="bunny">Bunny</option>
+                <option value="bird">Bird</option>
+                <option value="fish">Fish</option>
+                <option value="insect">Insect</option>
+                <option value="reptile">Reptile</option>
+                <option value="rodent">Rodent</option>
+                <option value="misc">Misc.</option>
+            </select>
             </p>
         </div>
         {{#if posts.length}}
@@ -60,27 +83,74 @@ function isActive(button) {
     button.classList.remove('activated')
 }
 
+function getPetFilter() {
+    const sortPet = document.getElementById("sortPet");
+    const petType = sortPet.value;
+    return petType;
+}
+
 function sortByLike() {
-    fetch('/sort/like')
-    .then(response => response.text())  // Expecting HTML response
-    .then(html => {
-        const postList = document.querySelector('.vertical-list ul');
-        postList.innerHTML = html;  // Insert the rendered HTML into the DOM
-    })
-    .catch(error => {
-        console.error('Error sorting posts by likes:', error);
-    });
+    const petType = getPetFilter();
+
+    if (petType === 'all') {
+        fetch('/sort/like')
+        .then(response => response.text())  // Expecting HTML response
+        .then(html => {
+            let postList = document.querySelector('.vertical-list ul');
+            postList.innerHTML = html;  // Insert the rendered HTML into the DOM
+        })
+        .catch(error => {
+            console.error('Error sorting posts by likes:', error);
+        });
+    }
+    else {
+        fetch(`/sort/like/:${petType}`)
+        .then(response => response.text())
+        .then(html => {
+            let postList = document.querySelector('.vertical-list ul');
+            postList.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error sorting posts by likes with pet:', error);
+        });
+    }
 }
 
 function sortByRecent() {
-    fetch('/')
-    .then(response => response.text())
-    .then(html => {
-        document.body.innerHTML = html;
-    })
-    .catch(error => {
-        console.error('Error sorting by recent:', error);
-    });
+    const petType = getPetFilter();
+
+    if (petType === 'all') {
+        fetch('/')
+        .then(response => response.text())
+        .then(html => {
+            document.body.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error sorting by recent:', error);
+        });
+    }
+    else {
+        console.log('here');
+        fetch(`/sort/recent/:${petType}`)
+        .then(response => response.text())
+        .then(html => {
+            const postList = document.querySelector('.vertical-list ul');
+            postList.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error sorting by recent with pet:', error);
+        });
+    }
+}
+
+function sortByPet() {
+    const petType = getPetFilter();
+
+    let activeFilter = document.querySelectorAll('.activated');
+    if (activeFilter[0] == document.getElementById('sortLike'))
+        sortByLike();
+    else
+        sortByRecent();
 }
 
 /*

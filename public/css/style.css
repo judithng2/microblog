@@ -16,6 +16,11 @@ h3 {
     font-size: 25px;
 }
 
+h4 {
+    color: lightslategray;
+    font-size: 18px;
+}
+
 span {
     font-weight: bold;
     padding: 0px 0px 0px 10px;
