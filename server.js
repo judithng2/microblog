@@ -246,6 +246,18 @@ app.get('/error', (req, res) => {
     res.render('error');
 });
 
+app.get('/logout', (req, res) => {
+    // TODO: Logout the user
+    if (req.session.userId)
+        logoutUser(req, res);
+});
+
+app.get('/changeUsername', (req, res) => {
+    if (req.session.loggedIn) {
+        res.render('changeUsername');
+    }
+});
+
 // POSTs -------------------------------------------------------------------------
 app.post('/registerUsername', (req, res) => {
     // TODO: Register a new user
@@ -278,10 +290,11 @@ app.post('/delete/:id', isAuthenticated, (req, res) => {
         deletePost(req, res);
     }
 });
-app.get('/logout', (req, res) => {
-    // TODO: Logout the user
-    if (req.session.userId)
-        logoutUser(req, res);
+
+app.post('/changeUsername', (req, res) => {
+    if (req.session.loggedIn){
+        changeUsername(req, res);
+    }
 });
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -603,4 +616,24 @@ function generateAvatar(letter, width = 80, height = 80) {
     ctx.fillText(letter, width / 2, height / 2);
 
     return canvas.toBuffer('image/png');
+}
+
+async function changeUsername(req, res) {
+    const newName = await findUserByUsername(req);
+    if (newName) {
+        res.render('changeUsername', {regError: 'username already exists'});
+    } else {
+        const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+        try {
+            const curr = await(getCurrentUser(req));
+            await db.run('UPDATE users SET username = ? WHERE id = ?', [req.body.username, curr.id]);
+            res.status(200);
+            res.render('changeUsername', {resSucc: "Successfully changed username"});
+            
+        } catch (err) {
+            console.error('Error changing username:', err);
+        } finally {
+            await db.close();
+        }
+    }
 }
