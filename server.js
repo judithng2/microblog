@@ -586,8 +586,18 @@ async function handleAvatar(req, res) {
         const avatar = generateAvatar(letter);
 
         res.set('Content-Type', 'image/png');
-        res.status(200);
-        res.send(avatar);
+        const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
+        
+        try {
+            await db.run('UPDATE users SET avatar_url = ? WHERE username = ?', [`/avatar/${user.username}`, user.username]);
+            res.status(200);
+            res.send(avatar);
+            
+        } catch (err) {
+            console.error('Error handling avatar:', err);
+        } finally {
+            await db.close();
+        }
     } else
         res.status(404).send('User not found');
 }
@@ -620,12 +630,14 @@ function generateAvatar(letter, width = 80, height = 80) {
 
 async function changeUsername(req, res) {
     const newName = await findUserByUsername(req);
+    
     if (newName) {
         res.render('changeUsername', {regError: 'username already exists'});
     } else {
         const db = await sqlite.open({ filename: dbFileName, driver: sqlite3.Database });
         try {
             const curr = await(getCurrentUser(req));
+            await db.run('UPDATE posts SET username = ? WHERE username = ?', [req.body.username, curr.username]);
             await db.run('UPDATE users SET username = ? WHERE id = ?', [req.body.username, curr.id]);
             res.status(200);
             res.render('changeUsername', {resSucc: "Successfully changed username"});
