@@ -1,0 +1,22 @@
+{{! Use the main layout }}
+{{!< main }}
+
+<section class="username-change">
+    <section class = "username-area">
+        <h2 class="username-change-text">Change Username</h2>
+        <!-- errors will appear here -->
+        {{#if regError}}
+            <p style="color: red;">{{regError}}</p>
+        {{/if}}
+        <form action="/changeUsername" method="POST">
+            <!-- the registration form goes here -->
+            <p>New Username:
+                <input name="username" type="text" required> 
+                <button type="submit">Register</button>
+            </p>
+        </form>
+        {{#if resSucc}}
+            <p style="color: blue">{{resSucc}}</p>
+        {{/if}}
+    </section>
+</section>
