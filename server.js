@@ -629,7 +629,7 @@ function generateAvatar(letter, width = 80, height = 80) {
 }
 
 async function changeUsername(req, res) {
-    const newName = await findUserByUsername(req);
+    const newName = await findUserByUsername(req.body.username);
     
     if (newName) {
         res.render('changeUsername', {regError: 'username already exists'});
@@ -638,7 +638,7 @@ async function changeUsername(req, res) {
         try {
             const curr = await(getCurrentUser(req));
             await db.run('UPDATE posts SET username = ? WHERE username = ?', [req.body.username, curr.username]);
-            await db.run('UPDATE users SET username = ? WHERE id = ?', [req.body.username, curr.id]);
+            await db.run('UPDATE users SET username = ?, avatar_url = ? WHERE id = ?', [req.body.username, `/avatar/${req.body.username}`, curr.id]);
             res.status(200);
             res.render('changeUsername', {resSucc: "Successfully changed username"});
             
